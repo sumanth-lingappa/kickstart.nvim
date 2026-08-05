@@ -495,13 +495,13 @@ do
     -- You can put your default mappings / updates / etc. in here
     --  All the info you're looking for is in `:help telescope.setup()`
     --
-    -- defaults = {
-         path_display = {"filename_first"},
-         dynamic_preview_title = true,
+    defaults = {
+      path_display = {"filename_first"},
+      dynamic_preview_title = true,
     --   mappings = {
     --     i = { ['<c-enter>'] = 'to_fuzzy_refine' },
     --   },
-    -- },
+    },
     pickers = {
       find_files = {
         cwd = require('telescope.utils').buffer_dir(),
