@@ -8,7 +8,7 @@ vim.pack.add {
 }
 
 vim.keymap.set('n', '\\', '<Cmd>Neotree toggle<CR>', { desc = 'NeoTree reveal', silent = true })
-vim.keymap.set('n', '<leader>e', '<Cmd>Neotree toggle<CR>', { desc = 'NeoTree toggle', silent = true })
+vim.keymap.set('n', '<leader>e', '<Cmd>Neotree float<CR>', { desc = 'NeoTree toggle', silent = true })
 
 require('neo-tree').setup {
   source_selector = {
