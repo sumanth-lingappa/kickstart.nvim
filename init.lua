@@ -371,10 +371,15 @@ do
     spec = {
       { '<leader>s', group = '[S]earch', mode = { 'n', 'v' } },
       { '<leader>t', group = '[T]oggle' },
+      { '<leader>g', group = '[G]it & GitHub' },
       { '<leader>h', group = 'Git [H]unk', mode = { 'n', 'v' } }, -- Enable gitsigns recommended keymaps first
+      { '<leader>l', group = '[L]azyGit' },
       { 'gr', group = 'LSP Actions', mode = { 'n' } },
     },
   }
+
+  -- Open a searchable, one-page reference for all active keymaps.
+  vim.keymap.set('n', '<leader>?', function() require('telescope.builtin').keymaps() end, { desc = 'Search [K]eymaps' })
 
   -- [[ Colorscheme ]]
   -- You can easily change to a different colorscheme.
