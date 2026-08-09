@@ -484,6 +484,7 @@ do
     gh 'nvim-lua/plenary.nvim',
     gh 'nvim-telescope/telescope.nvim',
     gh 'nvim-telescope/telescope-ui-select.nvim',
+    { src = gh 'nvim-telescope/telescope-live-grep-args.nvim', version = vim.version.range '1.*' },
   }
   if vim.fn.executable 'make' == 1 then table.insert(telescope_plugins, gh 'nvim-telescope/telescope-fzf-native.nvim') end
 
@@ -491,6 +492,9 @@ do
   vim.pack.add(telescope_plugins)
 
   -- See `:help telescope` and `:help telescope.setup()`
+  local live_grep_args_actions = require 'telescope-live-grep-args.actions'
+  local action_state = require 'telescope.actions.state'
+
   require('telescope').setup {
     -- You can put your default mappings / updates / etc. in here
     --  All the info you're looking for is in `:help telescope.setup()`
@@ -515,12 +519,32 @@ do
     },
     extensions = {
       ['ui-select'] = { require('telescope.themes').get_dropdown() },
+      live_grep_args = {
+        auto_quoting = true,
+        prompt_title = 'Grep: <C-g> glob; !glob excludes',
+        mappings = {
+          i = {
+            -- Add an `rg --iglob` filter. Quote the search text only once,
+            -- so repeated <C-g> presses can add more filters.
+            ['<C-g>'] = function(prompt_bufnr)
+              local picker = action_state.get_current_picker(prompt_bufnr)
+              local prompt = picker:_get_prompt()
+              if prompt:find('--iglob', 1, true) or prompt:find('--glob', 1, true) then
+                picker:set_prompt(prompt .. ' --iglob ')
+              else
+                live_grep_args_actions.quote_prompt { postfix = ' --iglob ' }(prompt_bufnr)
+              end
+            end,
+          },
+        },
+      },
     },
   }
 
   -- Enable Telescope extensions if they are installed
   pcall(require('telescope').load_extension, 'fzf')
   pcall(require('telescope').load_extension, 'ui-select')
+  pcall(require('telescope').load_extension, 'live_grep_args')
 
   -- See `:help telescope.builtin`
   local builtin = require 'telescope.builtin'
@@ -529,7 +553,7 @@ do
   vim.keymap.set('n', '<leader>sf', builtin.find_files, { desc = '[S]earch [F]iles' })
   vim.keymap.set('n', '<leader>ss', builtin.builtin, { desc = '[S]earch [S]elect Telescope' })
   vim.keymap.set({ 'n', 'v' }, '<leader>sw', builtin.grep_string, { desc = '[S]earch current [W]ord' })
-  vim.keymap.set('n', '<leader>sg', builtin.live_grep, { desc = '[S]earch by [G]rep' })
+  vim.keymap.set('n', '<leader>sg', require('telescope').extensions.live_grep_args.live_grep_args, { desc = '[S]earch by [G]rep' })
   vim.keymap.set('n', '<leader>sd', builtin.diagnostics, { desc = '[S]earch [D]iagnostics' })
   vim.keymap.set('n', '<leader>sr', builtin.resume, { desc = '[S]earch [R]esume' })
   vim.keymap.set('n', '<leader>s.', builtin.oldfiles, { desc = '[S]earch Recent Files ("." for repeat)' })
