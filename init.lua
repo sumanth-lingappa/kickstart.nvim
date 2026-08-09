@@ -99,7 +99,7 @@ do
   vim.g.maplocalleader = ' '
 
   -- Set to true if you have a Nerd Font installed and selected in the terminal
-  vim.g.have_nerd_font = true
+  vim.g.have_nerd_font = false
 
   -- [[ Setting options ]]
   --  See `:help vim.o`
@@ -110,7 +110,7 @@ do
   vim.o.number = true
   -- You can also add relative line numbers, to help with jumping.
   --  Experiment for yourself to see if you like it!
-  vim.o.relativenumber = true
+  -- vim.o.relativenumber = true
 
   -- Enable mouse mode, can be useful for resizing splits for example!
   vim.o.mouse = 'a'
@@ -128,7 +128,7 @@ do
   vim.o.breakindent = true
 
   -- Enable undo/redo changes even after closing and reopening a file
-  vim.o.undofile = false
+  vim.o.undofile = true
 
   -- Case-insensitive searching UNLESS \C or one or more capital letters in the search term
   vim.o.ignorecase = true
@@ -143,7 +143,7 @@ do
   -- Decrease mapped sequence wait time
   vim.o.timeoutlen = 300
 
-  -- Configure how new splits should be opened. By default, new splits open at the top and left
+  -- Configure how new splits should be opened
   vim.o.splitright = true
   vim.o.splitbelow = true
 
@@ -211,11 +211,19 @@ do
 
   vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
 
+  -- Exit terminal mode in the builtin terminal with a shortcut that is a bit easier
+  -- for people to discover. Otherwise, you normally need to press <C-\><C-n>, which
+  -- is not what someone will guess without a bit more experience.
+  --
+  -- NOTE: This won't work in all terminal emulators/tmux/etc. Try your own mapping
+  -- or just use <C-\><C-n> to exit terminal mode
+  vim.keymap.set('t', '<Esc><Esc>', '<C-\\><C-n>', { desc = 'Exit terminal mode' })
+
   -- TIP: Disable arrow keys in normal mode
-  vim.keymap.set('n', '<left>', '<cmd>echo "Use h to move!!"<CR>')
-  vim.keymap.set('n', '<right>', '<cmd>echo "Use l to move!!"<CR>')
-  vim.keymap.set('n', '<up>', '<cmd>echo "Use k to move!!"<CR>')
-  vim.keymap.set('n', '<down>', '<cmd>echo "Use j to move!!"<CR>')
+  -- vim.keymap.set('n', '<left>', '<cmd>echo "Use h to move!!"<CR>')
+  -- vim.keymap.set('n', '<right>', '<cmd>echo "Use l to move!!"<CR>')
+  -- vim.keymap.set('n', '<up>', '<cmd>echo "Use k to move!!"<CR>')
+  -- vim.keymap.set('n', '<down>', '<cmd>echo "Use j to move!!"<CR>')
 
   -- Keybinds to make split navigation easier.
   --  Use CTRL+<hjkl> to switch between windows
@@ -223,13 +231,14 @@ do
   --  See `:help wincmd` for a list of all window commands
   vim.keymap.set('n', '<C-h>', '<C-w><C-h>', { desc = 'Move focus to the left window' })
   vim.keymap.set('n', '<C-l>', '<C-w><C-l>', { desc = 'Move focus to the right window' })
+  vim.keymap.set('n', '<C-j>', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
   vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper window' })
 
   -- NOTE: Some terminals have colliding keymaps or are not able to send distinct keycodes
-  vim.keymap.set("n", "<C-S-h>", "<C-w>H", { desc = "Move window to the left" })
-  vim.keymap.set("n", "<C-S-l>", "<C-w>L", { desc = "Move window to the right" })
-  vim.keymap.set("n", "<C-S-j>", "<C-w>J", { desc = "Move window to the lower" })
-  vim.keymap.set("n", "<C-S-k>", "<C-w>K", { desc = "Move window to the upper" })
+  -- vim.keymap.set("n", "<C-S-h>", "<C-w>H", { desc = "Move window to the left" })
+  -- vim.keymap.set("n", "<C-S-l>", "<C-w>L", { desc = "Move window to the right" })
+  -- vim.keymap.set("n", "<C-S-j>", "<C-w>J", { desc = "Move window to the lower" })
+  -- vim.keymap.set("n", "<C-S-k>", "<C-w>K", { desc = "Move window to the upper" })
 
   -- [[ Basic Autocommands ]]
   --  See `:help lua-guide-autocommands`
@@ -362,15 +371,10 @@ do
     spec = {
       { '<leader>s', group = '[S]earch', mode = { 'n', 'v' } },
       { '<leader>t', group = '[T]oggle' },
-      { '<leader>g', group = '[G]it & GitHub' },
       { '<leader>h', group = 'Git [H]unk', mode = { 'n', 'v' } }, -- Enable gitsigns recommended keymaps first
-      { '<leader>l', group = '[L]azyGit' },
       { 'gr', group = 'LSP Actions', mode = { 'n' } },
     },
   }
-
-  -- Open a searchable, one-page reference for all active keymaps.
-  vim.keymap.set('n', '<leader>?', function() require('telescope.builtin').keymaps() end, { desc = 'Search [K]eymaps' })
 
   -- [[ Colorscheme ]]
   -- You can easily change to a different colorscheme.
@@ -382,7 +386,7 @@ do
   ---@diagnostic disable-next-line: missing-fields
   require('tokyonight').setup {
     styles = {
-      comments = { italic = true }, -- Disable italics in comments
+      comments = { italic = false }, -- Disable italics in comments
     },
   }
 
@@ -390,18 +394,6 @@ do
   -- Like many other themes, this one has different styles, and you could load
   -- any other, such as 'tokyonight-storm', 'tokyonight-moon', or 'tokyonight-day'.
   vim.cmd.colorscheme 'tokyonight-night'
-
-  -- Make split boundaries easier to see without distracting from the editor.
-  vim.opt.fillchars = {
-    vert = '│',
-    horiz = '─',
-    vertleft = '┤',
-    vertright = '├',
-    verthoriz = '┼',
-    horizup = '┴',
-    horizdown = '┬',
-  }
-  vim.api.nvim_set_hl(0, 'WinSeparator', { fg = '#7aa2f7', bold = true })
 
   -- Highlight todo, notes, etc in comments
   vim.pack.add { gh 'folke/todo-comments.nvim' }
@@ -433,7 +425,6 @@ do
     n_lines = 500,
   }
 
-  -- TODO: Add surround hints to which-key
   -- Add/delete/replace surroundings (brackets, quotes, etc.)
   --
   -- - saiw) - [S]urround [A]dd [I]nner [W]ord [)]Paren
@@ -447,29 +438,6 @@ do
   local statusline = require 'mini.statusline'
   -- Set `use_icons` to true if you have a Nerd Font
   statusline.setup { use_icons = vim.g.have_nerd_font }
-
-  -- Use one global statusline so horizontal splits use the configured `─`
-  -- separator instead of each window's statusline as a boundary.
-  vim.o.laststatus = 3
-
-  -- Show breadcrumbs in every split, with concise labels for terminal or
-  -- unnamed buffers.
-  _G.kickstart_winbar = function()
-    if vim.bo.buftype == 'terminal' then return ' Terminal' end
-
-    local name = vim.api.nvim_buf_get_name(0)
-    if name == '' then return ' [No Name]' end
-
-    local home = vim.fn.expand '~'
-    name = vim.fn.fnamemodify(name, ':p')
-    if vim.startswith(name, home) then name = '~' .. name:sub(#home + 1) end
-
-    local parts = vim.split(name, '/', { plain = true, trimempty = true })
-    return ' ' .. table.concat(parts, ' › ')
-  end
-  vim.o.winbar = '%<%{%v:lua.kickstart_winbar()%}'
-  vim.api.nvim_set_hl(0, 'WinBar', { fg = '#c0caf5', bg = '#1f2335', bold = true })
-  vim.api.nvim_set_hl(0, 'WinBarNC', { fg = '#565f89', bg = '#1f2335' })
 
   -- You can configure sections in the statusline by overriding their
   -- default behavior. For example, here we set the section for
@@ -515,7 +483,6 @@ do
     gh 'nvim-lua/plenary.nvim',
     gh 'nvim-telescope/telescope.nvim',
     gh 'nvim-telescope/telescope-ui-select.nvim',
-    { src = gh 'nvim-telescope/telescope-live-grep-args.nvim', version = vim.version.range '1.*' },
   }
   if vim.fn.executable 'make' == 1 then table.insert(telescope_plugins, gh 'nvim-telescope/telescope-fzf-native.nvim') end
 
@@ -523,59 +490,24 @@ do
   vim.pack.add(telescope_plugins)
 
   -- See `:help telescope` and `:help telescope.setup()`
-  local live_grep_args_actions = require 'telescope-live-grep-args.actions'
-  local action_state = require 'telescope.actions.state'
-
   require('telescope').setup {
     -- You can put your default mappings / updates / etc. in here
     --  All the info you're looking for is in `:help telescope.setup()`
     --
-    defaults = {
-      path_display = {"filename_first"},
-      dynamic_preview_title = true,
+    -- defaults = {
     --   mappings = {
     --     i = { ['<c-enter>'] = 'to_fuzzy_refine' },
     --   },
-    },
-    pickers = {
-      find_files = {
-        cwd = require('telescope.utils').buffer_dir(),
-      },
-      live_grep = {
-        cwd = require('telescope.utils').buffer_dir(),
-      },
-      grep_string = {
-        cwd = require('telescope.utils').buffer_dir(),
-      },
-    },
+    -- },
+    -- pickers = {}
     extensions = {
       ['ui-select'] = { require('telescope.themes').get_dropdown() },
-      live_grep_args = {
-        auto_quoting = true,
-        prompt_title = 'Grep: <C-g> glob; !glob excludes',
-        mappings = {
-          i = {
-            -- Add an `rg --iglob` filter. Quote the search text only once,
-            -- so repeated <C-g> presses can add more filters.
-            ['<C-g>'] = function(prompt_bufnr)
-              local picker = action_state.get_current_picker(prompt_bufnr)
-              local prompt = picker:_get_prompt()
-              if prompt:find('--iglob', 1, true) or prompt:find('--glob', 1, true) then
-                picker:set_prompt(prompt .. ' --iglob ')
-              else
-                live_grep_args_actions.quote_prompt { postfix = ' --iglob ' }(prompt_bufnr)
-              end
-            end,
-          },
-        },
-      },
     },
   }
 
   -- Enable Telescope extensions if they are installed
   pcall(require('telescope').load_extension, 'fzf')
   pcall(require('telescope').load_extension, 'ui-select')
-  pcall(require('telescope').load_extension, 'live_grep_args')
 
   -- See `:help telescope.builtin`
   local builtin = require 'telescope.builtin'
@@ -584,15 +516,11 @@ do
   vim.keymap.set('n', '<leader>sf', builtin.find_files, { desc = '[S]earch [F]iles' })
   vim.keymap.set('n', '<leader>ss', builtin.builtin, { desc = '[S]earch [S]elect Telescope' })
   vim.keymap.set({ 'n', 'v' }, '<leader>sw', builtin.grep_string, { desc = '[S]earch current [W]ord' })
-  vim.keymap.set('n', '<leader>sg', require('telescope').extensions.live_grep_args.live_grep_args, { desc = '[S]earch by [G]rep' })
+  vim.keymap.set('n', '<leader>sg', builtin.live_grep, { desc = '[S]earch by [G]rep' })
   vim.keymap.set('n', '<leader>sd', builtin.diagnostics, { desc = '[S]earch [D]iagnostics' })
   vim.keymap.set('n', '<leader>sr', builtin.resume, { desc = '[S]earch [R]esume' })
   vim.keymap.set('n', '<leader>s.', builtin.oldfiles, { desc = '[S]earch Recent Files ("." for repeat)' })
   vim.keymap.set('n', '<leader>sc', builtin.commands, { desc = '[S]earch [C]ommands' })
-  vim.keymap.set('n', '<leader>so', function()
-    vim.cmd('source ' .. vim.fn.fnameescape(vim.env.MYVIMRC))
-    vim.notify('🚀 Reloaded ' .. vim.env.MYVIMRC)
-  end, { desc = '[S]ource Neovim [O]ptions' })
   vim.keymap.set('n', '<leader><leader>', builtin.buffers, { desc = '[ ] Find existing buffers' })
 
   -- Add Telescope-based LSP pickers when an LSP attaches to a buffer.
@@ -1044,10 +972,9 @@ do
   -- require 'kickstart.plugins.debug'
   -- require 'kickstart.plugins.indent_line'
   -- require 'kickstart.plugins.lint'
-  require 'kickstart.plugins.autopairs'
-  require 'kickstart.plugins.gitsigns' -- adds gitsigns recommended keymaps
-  require 'kickstart.plugins.snacks'
-  require 'kickstart.plugins.octo'
+  -- require 'kickstart.plugins.autopairs'
+  -- require 'kickstart.plugins.neo-tree'
+  -- require 'kickstart.plugins.gitsigns' -- adds gitsigns recommended keymaps
   -- NOTE: You can add your own plugins, configuration, etc from `lua/custom/plugins/*.lua`
   --
   --  Uncomment the following line and add your plugins to `lua/custom/plugins/*.lua` to get going.
