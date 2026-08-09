@@ -211,41 +211,6 @@ do
 
   vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
 
-  -- Exit terminal mode in the builtin terminal with a shortcut that is a bit easier
-  -- for people to discover. Otherwise, you normally need to press <C-\><C-n>, which
-  -- is not what someone will guess without a bit more experience.
-  --
-  -- NOTE: This won't work in all terminal emulators/tmux/etc. Try your own mapping
-  -- or just use <C-\><C-n> to exit terminal mode
-  vim.keymap.set('t', '<Esc><Esc>', '<C-\\><C-n>', { desc = 'Exit terminal mode' })
-
-  -- Toggle a persistent terminal in a bottom split. Closing its window hides the
-  -- buffer, so its shell process and scrollback are available next time.
-  local terminal_bufnr
-  local toggle_terminal = function()
-    if terminal_bufnr and vim.api.nvim_buf_is_valid(terminal_bufnr) then
-      local terminal_win = vim.fn.bufwinid(terminal_bufnr)
-      if terminal_win ~= -1 then
-        vim.api.nvim_win_close(terminal_win, false)
-        return
-      end
-    end
-
-    vim.cmd 'botright new'
-    vim.cmd('resize ' .. math.floor(vim.o.lines * 0.25))
-
-    if terminal_bufnr and vim.api.nvim_buf_is_valid(terminal_bufnr) then
-      vim.api.nvim_win_set_buf(0, terminal_bufnr)
-    else
-      vim.cmd.terminal()
-      terminal_bufnr = vim.api.nvim_get_current_buf()
-      vim.bo[terminal_bufnr].bufhidden = 'hide'
-      vim.bo[terminal_bufnr].buflisted = false
-    end
-
-    vim.cmd.startinsert()
-  end
-
   -- TIP: Disable arrow keys in normal mode
   vim.keymap.set('n', '<left>', '<cmd>echo "Use h to move!!"<CR>')
   vim.keymap.set('n', '<right>', '<cmd>echo "Use l to move!!"<CR>')
@@ -265,7 +230,6 @@ do
   vim.keymap.set("n", "<C-S-l>", "<C-w>L", { desc = "Move window to the right" })
   vim.keymap.set("n", "<C-S-j>", "<C-w>J", { desc = "Move window to the lower" })
   vim.keymap.set("n", "<C-S-k>", "<C-w>K", { desc = "Move window to the upper" })
-  vim.keymap.set({ 'n', 't' }, '<C-j>', toggle_terminal, { desc = 'Toggle terminal' })
 
   -- [[ Basic Autocommands ]]
   --  See `:help lua-guide-autocommands`
@@ -1092,6 +1056,10 @@ do
   --  Uncomment the following line and add your plugins to `lua/custom/plugins/*.lua` to get going.
   -- require 'custom.plugins'
 end
+
+-- Personal configuration lives in lua/custom/ so the Kickstart sections above
+-- remain easy to compare and sync with upstream.
+require('custom').setup()
 
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et
