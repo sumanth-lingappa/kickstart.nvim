@@ -219,6 +219,33 @@ do
   -- or just use <C-\><C-n> to exit terminal mode
   vim.keymap.set('t', '<Esc><Esc>', '<C-\\><C-n>', { desc = 'Exit terminal mode' })
 
+  -- Toggle a persistent terminal in a bottom split. Closing its window hides the
+  -- buffer, so its shell process and scrollback are available next time.
+  local terminal_bufnr
+  local toggle_terminal = function()
+    if terminal_bufnr and vim.api.nvim_buf_is_valid(terminal_bufnr) then
+      local terminal_win = vim.fn.bufwinid(terminal_bufnr)
+      if terminal_win ~= -1 then
+        vim.api.nvim_win_close(terminal_win, false)
+        return
+      end
+    end
+
+    vim.cmd 'botright new'
+    vim.cmd('resize ' .. math.floor(vim.o.lines * 0.25))
+
+    if terminal_bufnr and vim.api.nvim_buf_is_valid(terminal_bufnr) then
+      vim.api.nvim_win_set_buf(0, terminal_bufnr)
+    else
+      vim.cmd.terminal()
+      terminal_bufnr = vim.api.nvim_get_current_buf()
+      vim.bo[terminal_bufnr].bufhidden = 'hide'
+      vim.bo[terminal_bufnr].buflisted = false
+    end
+
+    vim.cmd.startinsert()
+  end
+
   -- TIP: Disable arrow keys in normal mode
   vim.keymap.set('n', '<left>', '<cmd>echo "Use h to move!!"<CR>')
   vim.keymap.set('n', '<right>', '<cmd>echo "Use l to move!!"<CR>')
@@ -231,7 +258,6 @@ do
   --  See `:help wincmd` for a list of all window commands
   vim.keymap.set('n', '<C-h>', '<C-w><C-h>', { desc = 'Move focus to the left window' })
   vim.keymap.set('n', '<C-l>', '<C-w><C-l>', { desc = 'Move focus to the right window' })
-  vim.keymap.set('n', '<C-j>', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
   vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper window' })
 
   -- NOTE: Some terminals have colliding keymaps or are not able to send distinct keycodes
@@ -239,6 +265,7 @@ do
   vim.keymap.set("n", "<C-S-l>", "<C-w>L", { desc = "Move window to the right" })
   vim.keymap.set("n", "<C-S-j>", "<C-w>J", { desc = "Move window to the lower" })
   vim.keymap.set("n", "<C-S-k>", "<C-w>K", { desc = "Move window to the upper" })
+  vim.keymap.set({ 'n', 't' }, '<C-j>', toggle_terminal, { desc = 'Toggle terminal' })
 
   -- [[ Basic Autocommands ]]
   --  See `:help lua-guide-autocommands`
@@ -400,6 +427,18 @@ do
   -- any other, such as 'tokyonight-storm', 'tokyonight-moon', or 'tokyonight-day'.
   vim.cmd.colorscheme 'tokyonight-night'
 
+  -- Make split boundaries easier to see without distracting from the editor.
+  vim.opt.fillchars = {
+    vert = '│',
+    horiz = '─',
+    vertleft = '┤',
+    vertright = '├',
+    verthoriz = '┼',
+    horizup = '┴',
+    horizdown = '┬',
+  }
+  vim.api.nvim_set_hl(0, 'WinSeparator', { fg = '#7aa2f7', bold = true })
+
   -- Highlight todo, notes, etc in comments
   vim.pack.add { gh 'folke/todo-comments.nvim' }
   require('todo-comments').setup { signs = false }
@@ -444,6 +483,29 @@ do
   local statusline = require 'mini.statusline'
   -- Set `use_icons` to true if you have a Nerd Font
   statusline.setup { use_icons = vim.g.have_nerd_font }
+
+  -- Use one global statusline so horizontal splits use the configured `─`
+  -- separator instead of each window's statusline as a boundary.
+  vim.o.laststatus = 3
+
+  -- Show breadcrumbs in every split, with concise labels for terminal or
+  -- unnamed buffers.
+  _G.kickstart_winbar = function()
+    if vim.bo.buftype == 'terminal' then return ' Terminal' end
+
+    local name = vim.api.nvim_buf_get_name(0)
+    if name == '' then return ' [No Name]' end
+
+    local home = vim.fn.expand '~'
+    name = vim.fn.fnamemodify(name, ':p')
+    if vim.startswith(name, home) then name = '~' .. name:sub(#home + 1) end
+
+    local parts = vim.split(name, '/', { plain = true, trimempty = true })
+    return ' ' .. table.concat(parts, ' › ')
+  end
+  vim.o.winbar = '%<%{%v:lua.kickstart_winbar()%}'
+  vim.api.nvim_set_hl(0, 'WinBar', { fg = '#c0caf5', bg = '#1f2335', bold = true })
+  vim.api.nvim_set_hl(0, 'WinBarNC', { fg = '#565f89', bg = '#1f2335' })
 
   -- You can configure sections in the statusline by overriding their
   -- default behavior. For example, here we set the section for
