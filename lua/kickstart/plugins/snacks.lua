@@ -22,6 +22,9 @@ require("snacks").setup({
   },
   picker = {
     sources = {
+      explorer = {
+        jump = { close = true },
+      },
       gh_issue = {
         -- your gh_issue picker configuration comes here
         -- or leave it empty to use the default settings
