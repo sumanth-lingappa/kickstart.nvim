@@ -7,7 +7,38 @@ require('snacks').setup {
   gh = {},
   picker = {
     sources = {
-      explorer = { jump = { close = true } },
+      explorer = {
+        jump = { close = true },
+        actions = {
+          diff_selected = function(picker)
+            local items = picker:selected()
+            if #items ~= 2 then
+              vim.notify('Select exactly two files with <Tab> before diffing', vim.log.levels.WARN)
+              return
+            end
+
+            local paths = vim.tbl_map(function(item)
+              return require('snacks.picker.util').path(item)
+            end, items)
+            if not paths[1] or not paths[2] or vim.fn.filereadable(paths[1]) ~= 1 or vim.fn.filereadable(paths[2]) ~= 1 then
+              vim.notify('Only files can be diffed', vim.log.levels.WARN)
+              return
+            end
+
+            picker:close()
+            vim.cmd.tabnew()
+            vim.cmd.edit(vim.fn.fnameescape(paths[1]))
+            vim.cmd('vert diffsplit ' .. vim.fn.fnameescape(paths[2]))
+          end,
+        },
+        win = {
+          list = {
+            keys = {
+              ['D'] = 'diff_selected',
+            },
+          },
+        },
+      },
       gh_issue = {},
       gh_pr = {},
     },
